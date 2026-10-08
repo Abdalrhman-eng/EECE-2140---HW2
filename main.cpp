@@ -1,34 +1,19 @@
 /*
- * Full Name:     [Your Name]
- * Student ID:    [Your NUID]
- * Course:        EECE 2140 - Computing Fundamentals for Engineers
- * Section:       [Your Section]
- * Semester:      Fall 2026
- * Assignment:    Homework 2 - Calendar Toolkit
- * Compilation:   g++ -std=c++11 main.cpp -o main
- * Description:   A menu-driven calendar toolkit that validates dates, finds
- *                the day of the week for any date from 1900 through 2100,
- *                counts the days between two dates, and runs a seeded
- *                weekday quiz.
+ * Name: Abdalrhman Sheer
+ * Student ID: 002576282
+ * Course: EECE 2140, Section 07, Fall 2026
+ * Assignment: Homework 2 - Calendar Toolkit
  */
 
 #include <iostream>
-#include <cstdlib>   // rand, srand
-#include <cassert>   // assert
+#include <cstdlib>
+#include <cassert>
 
-// ---------------------------------------------------------------------
-// Types and global named constants — do not modify
-// ---------------------------------------------------------------------
 enum class Weekday { Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday };
 
 const int MIN_YEAR = 1900;   // earliest year the toolkit supports
 const int MAX_YEAR = 2100;   // latest year the toolkit supports
 
-// ---------------------------------------------------------------------
-// Function declarations — do not modify these interfaces.
-// The full contract of each function is in the TODO comment at its
-// definition below main(). You may add your own helper functions.
-// ---------------------------------------------------------------------
 bool isLeapYear(int year);
 int daysInMonth(int month, int year);
 bool isValidDate(int day, int month, int year);
@@ -36,13 +21,12 @@ int daysSince1900(int day, int month, int year);
 Weekday dayOfWeek(int day, int month, int year);
 void printWeekdayName(Weekday weekday, bool abbreviated = false);
 void printDate(int day, int month, int year);
-int daysBetween(int day1, int month1, int year1, int day2, int month2, int year2);
+int daysBetween(int day1, int month1, int year1,
+                int day2, int month2, int year2);
 int randomInRange(int low, int high);
 void randomDate(int& day, int& month, int& year, int minYear, int maxYear);
+void printTwoDigits(int value);
 
-// ---------------------------------------------------------------------
-// main() — provided verbatim from the assignment. Do NOT modify it.
-// ---------------------------------------------------------------------
 int main()
 {
     int choice = 0;
@@ -161,132 +145,146 @@ int main()
     return 0;
 }
 
-// =====================================================================
-// Function definitions — complete each TODO.
-// Each body below is a placeholder that lets the template compile;
-// replace it with your own implementation.
-// =====================================================================
-
-// TODO: isLeapYear
-//   Parameter: year - a year in the Gregorian calendar.
-//   Returns:   true if year is a leap year and false otherwise. A year is
-//              a leap year when it is divisible by 4, except that a year
-//              divisible by 100 is a leap year only if it is also
-//              divisible by 400 (2000 and 2024 are leap years; 1900 and
-//              2100 are not).
 bool isLeapYear(int year)
 {
-    return false;   // placeholder
+    // divisible by 400, or divisible by 4 but not by 100
+    return (year % 400 == 0) ||
+           (year % 4 == 0 && year % 100 != 0);
 }
 
-// TODO: daysInMonth
-//   Parameters:   month - a month number (1 = January ... 12 = December);
-//                 year - the year the month belongs to.
-//   Precondition: 1 <= month <= 12. Enforce this precondition with assert.
-//   Returns:      the number of days in that month of that year (28 or 29
-//                 for February, depending on whether year is a leap year).
 int daysInMonth(int month, int year)
 {
-    return 0;   // placeholder
+    assert(month >= 1 && month <= 12);
+
+    switch (month)
+    {
+        case 2:
+            if (isLeapYear(year))
+                return 29;
+            return 28;
+
+        case 4:
+        case 6:
+        case 9:
+        case 11:
+            return 30;
+
+        default:
+            return 31;   // Jan, Mar, May, Jul, Aug, Oct, Dec
+    }
 }
 
-// TODO: isValidDate
-//   Parameters: day, month, year - a candidate date (any int values).
-//   Returns:    true if MIN_YEAR <= year <= MAX_YEAR, 1 <= month <= 12,
-//               and 1 <= day <= the number of days in that month of that
-//               year; false otherwise. Must not violate the precondition
-//               of any function it calls, for ANY input values.
-//   Constraint: use daysInMonth for the number of days in the month.
 bool isValidDate(int day, int month, int year)
 {
-    return false;   // placeholder
+    if (year < MIN_YEAR || year > MAX_YEAR)
+        return false;
+
+    // check the month before calling daysInMonth so its assert can't fail
+    if (month < 1 || month > 12)
+        return false;
+
+    return day >= 1 && day <= daysInMonth(month, year);
 }
 
-// TODO: daysSince1900
-//   Parameters:   day, month, year - a date.
-//   Precondition: isValidDate(day, month, year). Enforce this with assert.
-//   Returns:      the number of days from 1 January 1900 to the given date
-//                 (0 for 1 January 1900, 1 for 2 January 1900, 31 for
-//                 1 February 1900, and so on).
 int daysSince1900(int day, int month, int year)
 {
-    return 0;   // placeholder
+    assert(isValidDate(day, month, year));
+
+    int total = 0;
+
+    // add every full year before this one
+    for (int y = MIN_YEAR; y < year; ++y)
+    {
+        if (isLeapYear(y))
+            total += 366;
+        else
+            total += 365;
+    }
+
+    // add every full month before this one in the current year
+    for (int m = 1; m < month; ++m)
+    {
+        total += daysInMonth(m, year);
+    }
+
+    // day - 1 because 1 Jan 1900 itself counts as 0
+    total += day - 1;
+
+    return total;
 }
 
-// TODO: dayOfWeek
-//   Parameters:   day, month, year - a date.
-//   Precondition: isValidDate(day, month, year). Enforce this with assert.
-//   Returns:      the Weekday on which the date falls. (1 January 1900 was
-//                 a Monday.)
-//   Constraint:   use daysSince1900.
 Weekday dayOfWeek(int day, int month, int year)
 {
-    return Weekday::Sunday;   // placeholder
+    assert(isValidDate(day, month, year));
+
+    int days = daysSince1900(day, month, year);
+
+    // 1 Jan 1900 was a Monday, so count forward from Monday and wrap every 7 days
+    return static_cast<Weekday>((static_cast<int>(Weekday::Monday) + days) % 7);
 }
 
-// TODO: printWeekdayName
-//   Parameters: weekday - any Weekday value;
-//               abbreviated - selects the form of the name (default false).
-//   Behavior:   prints the weekday's name to std::cout: the full name
-//               (Sunday, Monday, Tuesday, Wednesday, Thursday, Friday,
-//               Saturday) when abbreviated is false, or the three-letter
-//               form (Sun, Mon, Tue, Wed, Thu, Fri, Sat) when it is true.
-//               No spaces and no newline before or after the name.
-//   Returns:    nothing.
 void printWeekdayName(Weekday weekday, bool abbreviated)
 {
+    switch (weekday)
+    {
+        case Weekday::Sunday:
+            std::cout << (abbreviated ? "Sun" : "Sunday");
+            break;
+        case Weekday::Monday:
+            std::cout << (abbreviated ? "Mon" : "Monday");
+            break;
+        case Weekday::Tuesday:
+            std::cout << (abbreviated ? "Tue" : "Tuesday");
+            break;
+        case Weekday::Wednesday:
+            std::cout << (abbreviated ? "Wed" : "Wednesday");
+            break;
+        case Weekday::Thursday:
+            std::cout << (abbreviated ? "Thu" : "Thursday");
+            break;
+        case Weekday::Friday:
+            std::cout << (abbreviated ? "Fri" : "Friday");
+            break;
+        case Weekday::Saturday:
+            std::cout << (abbreviated ? "Sat" : "Saturday");
+            break;
+    }
 }
 
-// TODO: printDate
-//   Parameters:   day, month, year - a date.
-//   Precondition: isValidDate(day, month, year).
-//   Behavior:     prints the date to std::cout in the form YYYY-MM-DD, with
-//                 the month and the day always printed as two digits
-//                 (for example, 2026-09-05). No spaces and no newline.
-//   Returns:      nothing.
+// Prints a number from 0 to 99 as two digits, adding a leading zero if needed.
+void printTwoDigits(int value)
+{
+    if (value < 10)
+        std::cout << "0";
+    std::cout << value;
+}
+
 void printDate(int day, int month, int year)
 {
+    // years are always 4 digits (1900-2100), so only month and day need padding
+    std::cout << year << "-";
+    printTwoDigits(month);
+    std::cout << "-";
+    printTwoDigits(day);
 }
 
-// TODO: daysBetween
-//   Parameters:   day1, month1, year1 - the first date;
-//                 day2, month2, year2 - the second date.
-//   Precondition: both dates are valid.
-//   Returns:      the number of days from the first date to the second:
-//                 positive when the second date is later, negative when it
-//                 is earlier, and 0 when the dates are the same.
-//   Constraint:   use daysSince1900.
-int daysBetween(int day1, int month1, int year1, int day2, int month2, int year2)
+int daysBetween(int day1, int month1, int year1,
+                int day2, int month2, int year2)
 {
-    return 0;   // placeholder
+    // positive if the second date is later, negative if earlier
+    return daysSince1900(day2, month2, year2) - daysSince1900(day1, month1, year1);
 }
 
-// TODO: randomInRange
-//   Parameters:   low, high - the bounds of the range.
-//   Precondition: low <= high and (high - low) <= RAND_MAX.
-//   Returns:      a pseudorandom integer between low and high, inclusive,
-//                 obtained from rand(). Every value in the range must be
-//                 possible.
-//   Constraint:   do not call srand in this function.
 int randomInRange(int low, int high)
 {
-    return low;   // placeholder
+    // rand() % size gives 0 to (high - low), then shift it up to start at low
+    return low + std::rand() % (high - low + 1);
 }
 
-// TODO: randomDate
-//   Parameters:    day, month, year - output parameters (call-by-reference);
-//                  minYear, maxYear - the range of years to draw from.
-//   Precondition:  MIN_YEAR <= minYear <= maxYear <= MAX_YEAR; the random
-//                  number generator has already been seeded by main().
-//   Postcondition: day, month, and year hold a pseudorandom valid date
-//                  with minYear <= year <= maxYear, drawn in exactly this
-//                  order, each by its own call to randomInRange:
-//                    1. year  from randomInRange(minYear, maxYear)
-//                    2. month from randomInRange(1, 12)
-//                    3. day   from randomInRange(1, number of days in that
-//                             month of that year)
-//                  No other random numbers are drawn.
-//   Constraint:   do not call srand in this function.
 void randomDate(int& day, int& month, int& year, int minYear, int maxYear)
 {
+    // draw order must be year, month, day (Random Date Protocol)
+    year = randomInRange(minYear, maxYear);
+    month = randomInRange(1, 12);
+    day = randomInRange(1, daysInMonth(month, year));
 }
